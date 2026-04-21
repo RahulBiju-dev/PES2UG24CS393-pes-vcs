@@ -199,6 +199,8 @@ int commit_create(const char *message, ObjectID *commit_id_out) {
     
     if (head_read(&c.parent) == 0) {
         c.has_parent = 1;
+    } else {
+        c.has_parent = 0;
     }
     return 0;
 }

@@ -248,8 +248,15 @@ int object_read(const ObjectID *id, ObjectType *type_out, void **data_out, size_
         return -1;
     }
 
-    // TODO: implement data extraction and copy
+    *len_out = data_len;
+    *data_out = malloc(data_len);
+    if (!*data_out) {
+        free(full_data);
+        return -1;
+    }
 
+    memcpy(*data_out, full_data + header_len + 1, data_len);
     free(full_data);
+
     return 0;
 }

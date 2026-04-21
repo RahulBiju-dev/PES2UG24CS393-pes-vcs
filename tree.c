@@ -137,8 +137,19 @@ static int write_tree_level(IndexEntry *entries, int count, int depth, ObjectID 
     while (i < count) {
         IndexEntry *entry = &entries[i];
         
-        i++;
-    }
+        const char *slash = strchr(entry->path + depth, '/');
+        
+        if (!slash) {
+            // File belongs directly to this directory
+            TreeEntry *te = &tree.entries[tree.count++];
+            te->mode = entry->mode;
+            te->hash = entry->hash;
+            strcpy(te->name, entry->path + depth);
+            i++;
+        } else {
+            // It belongs to a subdirectory
+            i++; // temporary bypass to prevent infinite loop
+        }
     
     return -1;
 }

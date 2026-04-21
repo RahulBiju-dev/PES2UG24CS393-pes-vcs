@@ -213,7 +213,42 @@ int object_read(const ObjectID *id, ObjectType *type_out, void **data_out, size_
     }
     fclose(f);
 
-    // TODO: implement header parsing and hash verification
+    ObjectID computed_id;
+    compute_hash(full_data, file_size, &computed_id);
+
+    if (memcmp(computed_id.hash, id->hash, HASH_SIZE) != 0) {
+        free(full_data);
+        return -1;
+    }
+
+    void *null_byte = memchr(full_data, '\0', file_size);
+    if (!null_byte) {
+        free(full_data);
+        return -1;
+    }
+
+    char *header = (char *)full_data;
+    size_t header_len = (uint8_t *)null_byte - full_data;
+    
+    char type_str[16];
+    size_t data_len;
+    if (sscanf(header, "%15s %zu", type_str, &data_len) != 2) {
+        free(full_data);
+        return -1;
+    }
+
+    if (strcmp(type_str, "blob") == 0) {
+        *type_out = OBJ_BLOB;
+    } else if (strcmp(type_str, "tree") == 0) {
+        *type_out = OBJ_TREE;
+    } else if (strcmp(type_str, "commit") == 0) {
+        *type_out = OBJ_COMMIT;
+    } else {
+        free(full_data);
+        return -1;
+    }
+
+    // TODO: implement data extraction and copy
 
     free(full_data);
     return 0;

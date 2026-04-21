@@ -195,6 +195,11 @@ static int write_tree_level(IndexEntry *entries, int count, int depth, ObjectID 
     return 0;
 }
 
+__attribute__((weak)) int index_load(Index *index) {
+    (void)index;
+    return -1;
+}
+
 int tree_from_index(ObjectID *id_out) {
     Index idx;
     if (index_load(&idx) != 0) return -1;

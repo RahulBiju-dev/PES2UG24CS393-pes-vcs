@@ -138,6 +138,20 @@ int index_load(Index *index) {
     index->count = 0;
     FILE *f = fopen(INDEX_FILE, "r");
     if (!f) return 0;
+    
+    char line[1024];
+    while (fgets(line, sizeof(line), f)) {
+        char hex[HASH_HEX_SIZE + 1];
+        uint32_t mode;
+        uint64_t mtime_sec;
+        uint32_t size;
+        char path[512];
+        if (sscanf(line, "%o %64s %lu %u %[^
+]", &mode, hex, &mtime_sec, &size, path) == 5) {
+            // parsing logic
+        }
+    }
+    fclose(f);
     return 0;
 }
 

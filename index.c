@@ -167,6 +167,21 @@ int index_load(Index *index) {
         return -1;
     }
     free(data);
+    
+    IndexEntry *ent = index_find(index, path);
+    if (!ent) {
+        if (index->count >= MAX_INDEX_ENTRIES) return -1;
+        ent = &index->entries[index->count++];
+        snprintf(ent->path, sizeof(ent->path), "%s", path);
+    }
+    
+    ent->mode = 0100644; // Default to non-executable regular file
+    if (st.st_mode & S_IXUSR) ent->mode = 0100755;
+    
+    ent->hash = hash;
+    ent->mtime_sec = st.st_mtime;
+    ent->size = st.st_size;
+    
     return 0;
 }
 
@@ -245,5 +260,20 @@ int index_add(Index *index, const char *path) {
         return -1;
     }
     free(data);
+    
+    IndexEntry *ent = index_find(index, path);
+    if (!ent) {
+        if (index->count >= MAX_INDEX_ENTRIES) return -1;
+        ent = &index->entries[index->count++];
+        snprintf(ent->path, sizeof(ent->path), "%s", path);
+    }
+    
+    ent->mode = 0100644; // Default to non-executable regular file
+    if (st.st_mode & S_IXUSR) ent->mode = 0100755;
+    
+    ent->hash = hash;
+    ent->mtime_sec = st.st_mtime;
+    ent->size = st.st_size;
+    
     return 0;
 }

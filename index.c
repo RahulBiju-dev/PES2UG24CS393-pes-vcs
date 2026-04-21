@@ -148,7 +148,15 @@ int index_load(Index *index) {
         char path[512];
         if (sscanf(line, "%o %64s %lu %u %[^
 ]", &mode, hex, &mtime_sec, &size, path) == 5) {
-            // parsing logic
+            if (index->count >= MAX_INDEX_ENTRIES) break;
+            IndexEntry *ent = &index->entries[index->count];
+            ent->mode = mode;
+            ent->mtime_sec = mtime_sec;
+            ent->size = size;
+            snprintf(ent->path, sizeof(ent->path), "%s", path);
+            if (hex_to_hash(hex, &ent->hash) == 0) {
+                index->count++;
+            }
         }
     }
     fclose(f);

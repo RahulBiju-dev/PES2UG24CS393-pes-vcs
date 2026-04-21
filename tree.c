@@ -176,6 +176,12 @@ static int write_tree_level(IndexEntry *entries, int count, int depth, ObjectID 
             i = j;
         }
     
+    void *tree_data = NULL;
+    size_t tree_len = 0;
+    if (tree_serialize(&tree, &tree_data, &tree_len) != 0) {
+        return -1;
+    }
+    
     return -1;
 }
 

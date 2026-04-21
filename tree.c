@@ -148,7 +148,32 @@ static int write_tree_level(IndexEntry *entries, int count, int depth, ObjectID 
             i++;
         } else {
             // It belongs to a subdirectory
-            i++; // temporary bypass to prevent infinite loop
+            int dir_len = slash - (entry->path + depth);
+            char dir_name[256];
+            strncpy(dir_name, entry->path + depth, dir_len);
+            dir_name[dir_len] = '\0';
+            
+            // Group all files in this subdirectory
+            int j = i + 1;
+            while (j < count) {
+                if (strncmp(entries[j].path + depth, dir_name, dir_len) == 0 && 
+                    entries[j].path[depth + dir_len] == '/') {
+                    j++;
+                } else {
+                    break;
+                }
+            }
+            
+            // Recursively build tree for this subdirectory
+            ObjectID sub_tree_id;
+            write_tree_level(&entries[i], j - i, depth + dir_len + 1, &sub_tree_id);
+            
+            TreeEntry *te = &tree.entries[tree.count++];
+            te->mode = 0040000; // MODE_DIR
+            te->hash = sub_tree_id;
+            strcpy(te->name, dir_name);
+            
+            i = j;
         }
     
     return -1;

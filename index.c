@@ -24,6 +24,8 @@
 #include <unistd.h>
 #include <dirent.h>
 
+int object_write(ObjectType type, const void *data, size_t len, ObjectID *id_out);
+
 // ─── PROVIDED ────────────────────────────────────────────────────────────────
 
 // Find an index entry by path (linear scan).
@@ -146,8 +148,7 @@ int index_load(Index *index) {
         uint64_t mtime_sec;
         uint32_t size;
         char path[512];
-        if (sscanf(line, "%o %64s %lu %u %[^
-]", &mode, hex, &mtime_sec, &size, path) == 5) {
+        if (sscanf(line, "%o %64s %lu %u %[^\n]", &mode, hex, &mtime_sec, &size, path) == 5) {
             if (index->count >= MAX_INDEX_ENTRIES) break;
             IndexEntry *ent = &index->entries[index->count];
             ent->mode = mode;
@@ -161,28 +162,7 @@ int index_load(Index *index) {
     }
     fclose(f);
     
-    ObjectID hash;
-    if (object_write(OBJ_BLOB, data, st.st_size, &hash) != 0) {
-        free(data);
-        return -1;
-    }
-    free(data);
-    
-    IndexEntry *ent = index_find(index, path);
-    if (!ent) {
-        if (index->count >= MAX_INDEX_ENTRIES) return -1;
-        ent = &index->entries[index->count++];
-        snprintf(ent->path, sizeof(ent->path), "%s", path);
-    }
-    
-    ent->mode = 0100644; // Default to non-executable regular file
-    if (st.st_mode & S_IXUSR) ent->mode = 0100755;
-    
-    ent->hash = hash;
-    ent->mtime_sec = st.st_mtime;
-    ent->size = st.st_size;
-    
-    return index_save(index);
+    return 0;
 }
 
 // Save the index to .pes/index atomically.
@@ -213,8 +193,7 @@ int index_save(const Index *index) {
     for (int i = 0; i < index->count; i++) {
         char hex[HASH_HEX_SIZE + 1];
         hash_to_hex(&index->entries[i].hash, hex);
-        fprintf(f, "%06o %s %lu %u %s
-", 
+        fprintf(f, "%06o %s %lu %u %s\n", 
                 index->entries[i].mode, hex, 
                 index->entries[i].mtime_sec, 
                 index->entries[i].size, 

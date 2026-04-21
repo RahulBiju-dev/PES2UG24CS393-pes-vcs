@@ -182,7 +182,7 @@ int index_load(Index *index) {
     ent->mtime_sec = st.st_mtime;
     ent->size = st.st_size;
     
-    return 0;
+    return index_save(index);
 }
 
 // Save the index to .pes/index atomically.
@@ -195,13 +195,20 @@ int index_load(Index *index) {
 //   - rename                           : atomically moving the temp file over the old index
 //
 // Returns 0 on success, -1 on error.
+static int compare_entries(const void *a, const void *b) {
+    const IndexEntry *ea = (const IndexEntry *)a;
+    const IndexEntry *eb = (const IndexEntry *)b;
+    return strcmp(ea->path, eb->path);
+}
+
 int index_save(const Index *index) {
     char tmp_path[512];
     snprintf(tmp_path, sizeof(tmp_path), "%s.tmp", INDEX_FILE);
     FILE *f = fopen(tmp_path, "w");
     if (!f) return -1;
     
-    // In a real app we'd sort here, we'll do it later or now
+    Index *mut_index = (Index *)index;
+    qsort(mut_index->entries, mut_index->count, sizeof(IndexEntry), compare_entries);
     
     for (int i = 0; i < index->count; i++) {
         char hex[HASH_HEX_SIZE + 1];
@@ -275,5 +282,5 @@ int index_add(Index *index, const char *path) {
     ent->mtime_sec = st.st_mtime;
     ent->size = st.st_size;
     
-    return 0;
+    return index_save(index);
 }

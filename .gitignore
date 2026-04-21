@@ -18,6 +18,5 @@ test_tree
 .idea/
 
 #Agents
-./agents
+.agents/
 AGENTS.md
-./gemini

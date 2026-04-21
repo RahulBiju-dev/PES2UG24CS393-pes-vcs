@@ -175,6 +175,7 @@ static int write_tree_level(IndexEntry *entries, int count, int depth, ObjectID 
             
             i = j;
         }
+    }
     
     void *tree_data = NULL;
     size_t tree_len = 0;
@@ -182,7 +183,11 @@ static int write_tree_level(IndexEntry *entries, int count, int depth, ObjectID 
         return -1;
     }
     
-    return -1;
+    if (object_write(OBJ_TREE, tree_data, tree_len, id_out) != 0) {
+        return -1;
+    }
+    
+    return 0;
 }
 
 int tree_from_index(ObjectID *id_out) {

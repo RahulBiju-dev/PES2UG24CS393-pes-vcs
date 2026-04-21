@@ -184,9 +184,11 @@ static int write_tree_level(IndexEntry *entries, int count, int depth, ObjectID 
     }
     
     if (object_write(OBJ_TREE, tree_data, tree_len, id_out) != 0) {
+        free(tree_data);
         return -1;
     }
     
+    free(tree_data);
     return 0;
 }
 

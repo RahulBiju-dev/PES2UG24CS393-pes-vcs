@@ -160,6 +160,13 @@ int index_load(Index *index) {
         }
     }
     fclose(f);
+    
+    ObjectID hash;
+    if (object_write(OBJ_BLOB, data, st.st_size, &hash) != 0) {
+        free(data);
+        return -1;
+    }
+    free(data);
     return 0;
 }
 
@@ -231,5 +238,12 @@ int index_add(Index *index, const char *path) {
         return -1;
     }
     fclose(f);
+    
+    ObjectID hash;
+    if (object_write(OBJ_BLOB, data, st.st_size, &hash) != 0) {
+        free(data);
+        return -1;
+    }
+    free(data);
     return 0;
 }
